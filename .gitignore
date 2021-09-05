@@ -1,0 +1,10 @@
+.idea
+venv
+build
+dist
+Mods
+Mods Sources
+
+ui/ui_handler/__pycache__
+ui/ui_sources/__pycache__
+ui/utils/__pycache__
