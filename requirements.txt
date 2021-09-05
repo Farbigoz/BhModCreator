@@ -1,0 +1,3 @@
+PySide6
+jpype1
+pywin32
