@@ -360,6 +360,9 @@ class MainWindow(QMainWindow):
             self.controller.createMod(folderName)
 
     def reloadMods(self):
+        self.setLoadingScreen()
+        self.controller.reloadModsSources()
+        self.controller.reloadMods()
         self.controller.getModsSourcesData()
         self.controller.getModsData()
 
