@@ -87,6 +87,10 @@ class ModButton(QWidget):
         self.layout().removeWidget(self)
         self.setParent(None)
 
+    def restore(self, frame):
+        self.setParent(frame)
+        frame.layout().addWidget(self)
+
     def eventFilter(self, qobject: QWidget, event):
         if event.type() == QEvent.MouseButtonPress:
             self.select()

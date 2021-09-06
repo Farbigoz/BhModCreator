@@ -185,6 +185,8 @@ class Mods(QWidget):
         self.actions.build.clicked.connect(buildMethod)
         self.ui.createMod.clicked.connect(createMethod)
 
+        self.ui.searchArea.textChanged.connect(self.searchEvent)
+
         self.oldSize = (0, 0)
 
     def onResize(self, event):
@@ -262,6 +264,33 @@ class Mods(QWidget):
             self.modsList.layout().addWidget(w)
 
         self.origScrollModsListResizeEvent(event)
+
+    def searchEvent(self, text):
+        if not text:
+            displayModButtons = self.modsButtons
+
+        else:
+            text = text.casefold()
+
+            if len(text.split(" ")) == 1:
+                text = f" {text}"
+
+            displayModButtons = [
+                modButton
+                for modButton in self.modsButtons
+                if any([
+                    text in f" {modButton.modClass.name.lower()}",
+                    text in f" {modButton.modClass.author.lower()}",
+                    modButton.modClass.gameVersion.startswith(text.strip()),
+                    any([tag.casefold().lower().startswith(text.strip()) for tag in modButton.modClass.tags])
+                ])
+            ]
+
+        for modButton in self.modsButtons:
+            modButton.remove()
+
+        for modButton in displayModButtons:
+            modButton.restore(self.modsList)
 
     # Changed
     def nameChanged(self):
