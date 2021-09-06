@@ -189,7 +189,7 @@ class MainWindow(QMainWindow):
                 self.progressDialog.addValue()
             elif ntype == NotificationType.CompileModSourcesImportSound:
                 modHash, sound = notification.args
-                self.progressDialog.setContent(f"Assembly sprite: {sound}")
+                self.progressDialog.setContent(f"Assembly sound: {sound}")
                 self.progressDialog.addValue()
             elif ntype == NotificationType.CompileModSourcesImportSprite:
                 modHash, sprite = notification.args
