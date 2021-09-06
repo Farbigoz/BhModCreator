@@ -65,7 +65,7 @@ class MainWindow(QMainWindow):
         self.acceptDialog = AcceptDialog(self)
         self.inputDialog = InputDialog(self)
 
-        AddToFrame(self.ui.mainFrame, self.loading)
+        self.setLoadingScreen()
 
         self.controllerGetterTimer = QTimer()
         self.controllerGetterTimer.timeout.connect(self.controllerGet)  # connect it to your update function
@@ -244,7 +244,7 @@ class MainWindow(QMainWindow):
 
                 self.mods.updateAll()
 
-            self.loadBody()
+            self.setModsScreen()
 
         elif cmd == Environment.GetModConflict:
             searching, modHash = data[1]
@@ -305,14 +305,16 @@ class MainWindow(QMainWindow):
                                                                  '<color="#ff5050">This folder already exists!</color>'))
                 #self.controller.reloadModsSources()
 
-    def loadBody(self):
-        if not self._loaded:
-            ClearFrame(self.ui.mainFrame)
+    def setLoadingScreen(self):
+        ClearFrame(self.ui.mainFrame)
 
-            AddToFrame(self.ui.mainFrame, self.header)
-            AddToFrame(self.ui.mainFrame, self.mods)
+        AddToFrame(self.ui.mainFrame, self.loading)
 
-            self._loaded = True
+    def setModsScreen(self):
+        ClearFrame(self.ui.mainFrame)
+
+        AddToFrame(self.ui.mainFrame, self.header)
+        AddToFrame(self.ui.mainFrame, self.mods)
 
     def saveModSource(self):
         if self.mods.selectedModButton is not None:
