@@ -354,7 +354,7 @@ class MainWindow(QMainWindow):
             self.inputDialog.setTitle("Create mod...")
             self.inputDialog.setContent("Enter mod folder name")
             self.inputDialog.setAccept(self.createMod)
-            self.inputDialog.setCancel([self.inputDialog.hide, self.inputDialog.clearInput])
+            self.inputDialog.setCancel(lambda: [self.inputDialog.hide(), self.inputDialog.clearInput()])
             self.inputDialog.show()
         else:
             self.controller.createMod(folderName)
