@@ -293,19 +293,19 @@ class Mods(QWidget):
             modButton.restore(self.modsList)
 
     # Changed
-    def nameChanged(self):
+    def nameChanged(self, text):
         if self.selectedModButton is not None:
-            self.selectedModButton.modClass.name = self.body.name.text().strip()
+            self.selectedModButton.modClass.name = text.strip()
             self.selectedModButton.updateData()
 
-    def authorChanged(self):
+    def authorChanged(self, text):
         if self.selectedModButton is not None:
-            self.selectedModButton.modClass.author = self.body.author.text().strip()
+            self.selectedModButton.modClass.author = text.strip()
             self.selectedModButton.updateData()
 
-    def gameVersionChanged(self):
+    def gameVersionChanged(self, text):
         if self.selectedModButton is not None:
-            gameVersion = self.body.gameVersion.text().strip()
+            gameVersion = text.strip()
             self.selectedModButton.modClass.gameVersion = gameVersion
             if gameVersion == self.currentGameVersion:
                 self.selectedModButton.modClass.currentVersion = True
@@ -313,13 +313,13 @@ class Mods(QWidget):
                 self.selectedModButton.modClass.currentVersion = False
             self.selectedModButton.updateData()
 
-    def modVersionChanged(self):
+    def modVersionChanged(self, text):
         if self.selectedModButton is not None:
-            self.selectedModButton.modClass.version = self.body.version.text().strip()
+            self.selectedModButton.modClass.version = text.strip()
 
-    def tagsChanged(self):
+    def tagsChanged(self, text):
         if self.selectedModButton is not None:
-            self.selectedModButton.modClass.tags = self.body.tags.text().strip().split(", ")
+            self.selectedModButton.modClass.tags = text.strip().split(", ")
 
     def descriptionChanged(self):
         self.body.descriptionFrame.setMinimumHeight(self.body.description.document().size().height() +
