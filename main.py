@@ -20,14 +20,24 @@ from ui.utils.layout import AddToFrame, ClearFrame
 from ui.utils.textformater import TextFormatter
 
 
-if getattr(sys, "frozen", False):
-    try:
-        import pyi_splash
-        import time
-        pyi_splash.update_text("application")
-        pyi_splash.close()
-    except:
-        pass
+def InitWindowSetText(text):
+    if getattr(sys, "frozen", False):
+        try:
+            import pyi_splash
+            pyi_splash.update_text(text)
+        except:
+            pass
+
+
+def InitWindowClose():
+    if getattr(sys, "frozen", False):
+        try:
+            import pyi_splash
+            import time
+            pyi_splash.update_text("application")
+            pyi_splash.close()
+        except:
+            pass
 
 
 class MainWindow(QMainWindow):
@@ -43,11 +53,13 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Brawlhalla ModCreator")
         self.setWindowIcon(QIcon(':/icons/resources/icons/App.ico'))
 
+        InitWindowSetText("core libs")
         self.controller = core.Controller()
         self.controller.setModsPath(self.modsPath)
         self.controller.setModsSourcesPath(self.modsSourcesPath)
         self.controller.reloadMods()
         self.controller.reloadModsSources()
+        InitWindowClose()
 
         self.controller.getModsSourcesData()
         self.controller.getModsData()
@@ -307,8 +319,8 @@ class MainWindow(QMainWindow):
 
     def setLoadingScreen(self):
         ClearFrame(self.ui.mainFrame)
-
         AddToFrame(self.ui.mainFrame, self.loading)
+        self.loading.setText("Loading mods sources...")
 
     def setModsScreen(self):
         ClearFrame(self.ui.mainFrame)
