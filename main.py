@@ -33,6 +33,9 @@ if getattr(sys, "frozen", False):
 class MainWindow(QMainWindow):
     _loaded = False
 
+    modsPath = os.path.join(os.getcwd(), "Mods")
+    modsSourcesPath = os.path.join(os.getcwd(), "Mods Sources")
+
     def __init__(self):
         super().__init__()
         self.ui = Window(self)
@@ -41,8 +44,8 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(QIcon(':/icons/resources/icons/App.ico'))
 
         self.controller = core.Controller()
-        self.controller.setModsPath(os.path.join(os.getcwd(), "Mods"))
-        self.controller.setModsSourcesPath(os.path.join(os.getcwd(), "Mods Sources"))
+        self.controller.setModsPath(self.modsPath)
+        self.controller.setModsSourcesPath(self.modsSourcesPath)
         self.controller.reloadMods()
         self.controller.reloadModsSources()
 
@@ -51,7 +54,13 @@ class MainWindow(QMainWindow):
 
         self.loading = Loading()
         self.header = HeaderFrame()
-        self.mods = Mods(self.saveModSource, self.installMod, self.uninstallMod, self.buildMod, self.createMod)
+        self.mods = Mods(saveMethod=self.saveModSource,
+                         installMethod=self.installMod,
+                         uninstallMethod=self.uninstallMod,
+                         buildMethod=self.buildMod,
+                         createMethod=self.createMod,
+                         reloadMethod=self.reloadMods,
+                         openFolderMethod=self.openModsSourcesFolder)
         self.progressDialog = ProgressDialog(self)
         self.acceptDialog = AcceptDialog(self)
         self.inputDialog = InputDialog(self)
@@ -76,7 +85,6 @@ class MainWindow(QMainWindow):
             return
 
         cmd = data[0]
-        #print(data)
 
         if cmd == Environment.Notification:
             notification: core.notifications.Notification = data[1]
@@ -348,6 +356,13 @@ class MainWindow(QMainWindow):
             self.inputDialog.show()
         else:
             self.controller.createMod(folderName)
+
+    def reloadMods(self):
+        self.controller.getModsSourcesData()
+        self.controller.getModsData()
+
+    def openModsSourcesFolder(self):
+        os.startfile(self.modsSourcesPath)
 
 
 if __name__ == "__main__":

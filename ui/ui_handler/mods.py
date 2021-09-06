@@ -12,7 +12,7 @@ from ..ui_sources.ui_mod_build_actions import Ui_ModsBuildActions
 from ..ui_sources.ui_mod_body import Ui_ModCreator
 from ..ui_sources.ui_preview_editor import Ui_SetPreviewWidget
 
-from ..utils.layout import AddToFrame
+from ..utils.layout import AddToFrame, ClearFrame
 from ..utils.textformater import TextFormatter
 
 
@@ -117,7 +117,8 @@ class Mods(QWidget):
 
     currentGameVersion = ""
 
-    def __init__(self, saveMethod, installMethod, uninstallMethod, buildMethod, createMethod):
+    def __init__(self, saveMethod, installMethod, uninstallMethod, buildMethod, createMethod,
+                 reloadMethod, openFolderMethod):
         super().__init__()
 
         self.ui = Ui_Mods()
@@ -139,6 +140,7 @@ class Mods(QWidget):
         self.ui.modsBuildActions.setMinimumHeight(95)
         AddToFrame(self.ui.modsBuildActions, actionsWidget)
 
+        # Filling previews grid
         for r in range(2):
             for c in range(3):
                 previewSetter = SetPreview()
@@ -178,12 +180,14 @@ class Mods(QWidget):
 
         self.saveTimer = QTimer()
         self.saveTimer.start(3000)  # Save every 5 seconds
-        self.saveTimer.timeout.connect(saveMethod)
 
+        self.saveTimer.timeout.connect(saveMethod)
         self.actions.install.clicked.connect(installMethod)
         self.actions.uninstall.clicked.connect(uninstallMethod)
         self.actions.build.clicked.connect(buildMethod)
         self.ui.createMod.clicked.connect(createMethod)
+        self.ui.reloadModsList.clicked.connect(lambda: [self.removeAllMods(), reloadMethod()])
+        self.ui.openModsFolderButton.clicked.connect(openFolderMethod)
 
         self.ui.searchArea.textChanged.connect(self.searchEvent)
 
@@ -441,6 +445,7 @@ class Mods(QWidget):
 
         if not self.selectedModButton:
             modButton.select()
+            self.saveTimer.start(3000)
 
     def addMod(self,
                gameVersion: str,
@@ -484,3 +489,18 @@ class Mods(QWidget):
         if modSources is not None:
             modSources.installed = installed
             modSources.modFileExist = modFileExist
+
+    def removeAllMods(self):
+        ClearFrame(self.modsList)
+
+        self.selectedModButton = None
+        for modButton in self.modsButtons:
+            modButton.__del__()
+            del modButton
+        self.modsButtons.clear()
+
+        for modSource in self.modsSources.values():
+            del modSource
+        self.modsSources.clear()
+
+        self.saveTimer.stop()
