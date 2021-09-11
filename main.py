@@ -1,11 +1,13 @@
 import os
 import sys
+import threading
+import webbrowser
 
 import core
 from core import NotificationType, Environment
 
 from PySide6.QtGui import QIcon, QFontDatabase
-from PySide6.QtCore import QTimer, QSize
+from PySide6.QtCore import QTimer, QSize, Signal
 from PySide6.QtWidgets import QApplication, QMainWindow
 
 from ui.ui_handler.window import Window
@@ -19,6 +21,7 @@ from ui.ui_handler.inputdialog import InputDialog
 
 from ui.utils.layout import AddToFrame, ClearFrame
 from ui.utils.textformater import TextFormatter
+from ui.utils.version import GetLasted
 
 
 def InitWindowSetText(text):
@@ -88,6 +91,9 @@ class MainWindow(QMainWindow):
 
         self.setMinimumSize(QSize(850, 550))
 
+        self.versionSignal.connect(self.newVersion)
+        threading.Thread(target=self.checkNewVersion).start()
+
     def resizeEvent(self, event):
         self.progressDialog.onResize()
         self.acceptDialog.onResize()
@@ -105,7 +111,7 @@ class MainWindow(QMainWindow):
             notification: core.notifications.Notification = data[1]
             ntype = notification.notificationType
 
-            #print(notification)
+            # print(notification)
 
             if ntype == NotificationType.LoadingModSource:
                 modPath = notification.args[0]
@@ -173,7 +179,7 @@ class MainWindow(QMainWindow):
                 modClass = self.mods.modsSources[modHash]
                 modClass.installed = True
                 self.mods.updateAll()
-                #self.mods.selectedModButton.updateData()
+                # self.mods.selectedModButton.updateData()
                 self.progressDialog.hide()
 
             # Uninstalling
@@ -197,7 +203,7 @@ class MainWindow(QMainWindow):
                 modClass = self.mods.modsSources[modHash]
                 modClass.installed = False
                 self.mods.updateAll()
-                #self.mods.selectedModButton.updateData()
+                # self.mods.selectedModButton.updateData()
 
                 self.progressDialog.hide()
 
@@ -225,8 +231,8 @@ class MainWindow(QMainWindow):
             elif ntype == NotificationType.CompileModSourcesFinished:
                 modHash = notification.args[0]
                 modsSources = self.mods.modsSources[modHash]
-                #self.mods.updateAll()
-                #self.mods.selectedModButton.updateData()
+                # self.mods.updateAll()
+                # self.mods.selectedModButton.updateData()
                 self.controller.reloadMods()
                 self.controller.getModsData()
 
@@ -318,7 +324,7 @@ class MainWindow(QMainWindow):
                 self.inputDialog.setTitle("Create mod...")
                 self.inputDialog.setContent(TextFormatter.format("Enter mod folder name\n\n"
                                                                  '<color="#ff5050">This folder already exists!</color>'))
-                #self.controller.reloadModsSources()
+                # self.controller.reloadModsSources()
 
     def setLoadingScreen(self):
         ClearFrame(self.ui.mainFrame)
@@ -421,6 +427,22 @@ class MainWindow(QMainWindow):
     def deleteModAllData(self):
         self.deleteModFile()
         self.deleteModSources()
+
+    def newVersion(self, url):
+        self.buttonsDialog.setTitle("New version available")
+        self.buttonsDialog.setContent(url)
+        self.buttonsDialog.deleteButtons()
+        self.buttonsDialog.addButton("GO TO SITE", lambda: [webbrowser.open(url),
+                                                            self.buttonsDialog.hide()])
+        self.buttonsDialog.addButton("CANCEL", self.buttonsDialog.hide)
+        self.buttonsDialog.show()
+
+    versionSignal = Signal(str)
+
+    def checkNewVersion(self):
+        newVersion = GetLasted()
+        if newVersion is not None:
+            self.versionSignal.emit(newVersion)
 
 
 if __name__ == "__main__":
