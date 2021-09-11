@@ -63,6 +63,10 @@ class ModButton(QWidget):
         self.ui.modName.setText(elided)
         self.ui.modName.setMaximumWidth(parent.width() - 100)
 
+        metrics = QFontMetrics(self.ui.modAuthor.font())
+        elided = metrics.elidedText(f"Author: {self.modClass.author}", Qt.ElideRight, parent.width() - 50)
+        self.ui.modAuthor.setText(elided)
+
     def select(self):
         if self.pressed:
             pass
