@@ -21,7 +21,7 @@ from ui.ui_handler.inputdialog import InputDialog
 
 from ui.utils.layout import AddToFrame, ClearFrame
 from ui.utils.textformater import TextFormatter
-from ui.utils.version import GetLasted
+from ui.utils.version import GetLatest, GITHUB, REPO
 
 
 def InitWindowSetText(text):
@@ -37,7 +37,6 @@ def InitWindowClose():
     if getattr(sys, "frozen", False):
         try:
             import pyi_splash
-            import time
             pyi_splash.update_text("application")
             pyi_splash.close()
         except:
@@ -69,7 +68,7 @@ class MainWindow(QMainWindow):
         self.controller.getModsData()
 
         self.loading = Loading()
-        self.header = HeaderFrame()
+        self.header = HeaderFrame(githubMethod=lambda: webbrowser.open(f"{GITHUB}/{REPO}"))
         self.mods = Mods(saveMethod=self.saveModSource,
                          installMethod=self.installMod,
                          uninstallMethod=self.uninstallMod,
@@ -440,7 +439,7 @@ class MainWindow(QMainWindow):
     versionSignal = Signal(str)
 
     def checkNewVersion(self):
-        newVersion = GetLasted()
+        newVersion = GetLatest()
         if newVersion is not None:
             self.versionSignal.emit(newVersion)
 
