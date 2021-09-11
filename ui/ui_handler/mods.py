@@ -179,7 +179,8 @@ class Mods(QWidget):
         self.ui.scrollModsList.resizeEvent = self.onModsListResize
 
         self.saveTimer = QTimer()
-        self.saveTimer.start(3000)  # Save every 5 seconds
+        self.saveTimer.setSingleShot(True)
+        #self.saveTimer.start(3000)  # Save every 5 seconds
 
         self.saveTimer.timeout.connect(saveMethod)
         self.actions.install.clicked.connect(installMethod)
@@ -299,16 +300,25 @@ class Mods(QWidget):
 
     # Changed
     def nameChanged(self, text):
+        self.saveTimer.stop()
+        self.saveTimer.start(500)
+
         if self.selectedModButton is not None:
             self.selectedModButton.modClass.name = text.strip()
             self.selectedModButton.updateData()
 
     def authorChanged(self, text):
+        self.saveTimer.stop()
+        self.saveTimer.start(500)
+
         if self.selectedModButton is not None:
             self.selectedModButton.modClass.author = text.strip()
             self.selectedModButton.updateData()
 
     def gameVersionChanged(self, text):
+        self.saveTimer.stop()
+        self.saveTimer.start(500)
+
         if self.selectedModButton is not None:
             gameVersion = text.strip()
             self.selectedModButton.modClass.gameVersion = gameVersion
@@ -319,14 +329,23 @@ class Mods(QWidget):
             self.selectedModButton.updateData()
 
     def modVersionChanged(self, text):
+        self.saveTimer.stop()
+        self.saveTimer.start(500)
+
         if self.selectedModButton is not None:
             self.selectedModButton.modClass.version = text.strip()
 
     def tagsChanged(self, text):
+        self.saveTimer.stop()
+        self.saveTimer.start(500)
+
         if self.selectedModButton is not None:
             self.selectedModButton.modClass.tags = text.strip().split(", ")
 
     def descriptionChanged(self):
+        self.saveTimer.stop()
+        self.saveTimer.start(500)
+
         self.body.descriptionFrame.setMinimumHeight(self.body.description.document().size().height() +
                                                     self.body.description.minimumHeight())
 
@@ -341,6 +360,9 @@ class Mods(QWidget):
             self.selectedModButton.modClass.description = self.body.description.toPlainText()
 
     def previewSelected(self, previewPath):
+        self.saveTimer.stop()
+        self.saveTimer.start(500)
+
         previews = []
         for previewSetter in self.previewSetters:
             preview = previewSetter.preview
