@@ -1,7 +1,7 @@
 # Brawlhalla ModCreator ![Python 3.6](https://img.shields.io/badge/python-3.8-blue.svg)
 
 **ModCreator** - tool for creating mods for Brawlhalla  
-**[ModLoader](https://github.com/Farbigoz/BhModloadeer)** - tool for installing mods in Brawlhalla
+**[ModLoader](https://github.com/Farbigoz/BhModloader)** - tool for installing mods in Brawlhalla
 
 ![window](https://github.com/Farbigoz/BhModCreator/blob/main/wiki/readme/window.png)
 
