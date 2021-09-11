@@ -13,3 +13,10 @@
     $ pip install PySide6
     $ pip install psutil
     $ pip install pywin32   #If your system - Windows
+
+## Licenses
+
+Brawlhalla Modloader Core is licensed with GNU GPL v3, see the [license.txt](license.txt).
+It uses modified code of these libraries:
+
+* [FFDec Library](https://github.com/jindrapetrik/jpexs-decompiler) - LGPLv3
