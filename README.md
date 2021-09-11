@@ -5,6 +5,9 @@
 
 ![window](https://github.com/Farbigoz/BhModCreator/blob/main/wiki/readme/window.png)
 
+## Lasted release
+* **[Version 0.2 beta](https://github.com/Farbigoz/BhModCreator/releases/tag/0.2version)**
+
 ## Wiki
 * **[Formatting description text](https://github.com/Farbigoz/BhModCreator/wiki/Text-formatting)**
 
