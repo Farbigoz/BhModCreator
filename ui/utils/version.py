@@ -1,39 +1,65 @@
 import sys
 import json
 import urllib.request
-import win32api
 
 
-
+GITHUB = "https://github.com"
 GITHUB_API = "https://api.github.com"
 REPO = "Farbigoz/BhModCreator"
 
 
-def GetFileProperties(fname):
-    props = {"FileVersion": None, "FileFlags": None}
+if sys.platform in ["win32", "win64"]:
+    import win32api
 
-    try:
-        fixedInfo = win32api.GetFileVersionInfo(fname, '\\')
-        props['FileFlags'] = fixedInfo["FileFlags"]
-        lang, codepage = win32api.GetFileVersionInfo(fname, '\\VarFileInfo\\Translation')[0]
-        props['FileVersion'] = win32api.GetFileVersionInfo(fname, u'\\StringFileInfo\\%04X%04X\\FileVersion' %
-                                                           (lang, codepage))
-    except:
-        pass
+    def GetFileProperties(executable):
+        props = {"FileVersion": None, "FileFlags": None}
 
-    return props
+        try:
+            fixedInfo = win32api.GetFileVersionInfo(executable, '\\')
+            props['FileFlags'] = fixedInfo["FileFlags"]
+            lang, codepage = win32api.GetFileVersionInfo(executable, '\\VarFileInfo\\Translation')[0]
+            props['FileVersion'] = win32api.GetFileVersionInfo(executable, u'\\StringFileInfo\\%04X%04X\\FileVersion' %
+                                                               (lang, codepage))
+        except:
+            pass
+
+        return props
 
 
-if getattr(sys, 'frozen', False):
-    fileProperties = GetFileProperties(sys.executable)
-    VERSION = fileProperties["FileVersion"]
-    PRERELEASE = bool(fileProperties["FileFlags"] & 0x2)
+    if getattr(sys, 'frozen', False):
+        fileProperties = GetFileProperties(sys.executable)
+        VERSION = fileProperties["FileVersion"]
+        PRERELEASE = bool(fileProperties["FileFlags"] & 0x2)
+
+elif sys.platform == "darwin":
+    def GetFileProperties(executable):
+        props = {"FileVersion": None, "FileFlags": None}
+        return props
+
+
+    if getattr(sys, 'frozen', False):
+        fileProperties = GetFileProperties(sys.executable)
+        VERSION = fileProperties["FileVersion"]
+        PRERELEASE = fileProperties["FileFlags"]
+
 else:
+    def GetFileProperties(executable):
+        props = {"FileVersion": None, "FileFlags": None}
+        return props
+
+
+    if getattr(sys, 'frozen', False):
+        fileProperties = GetFileProperties(sys.executable)
+        VERSION = fileProperties["FileVersion"]
+        PRERELEASE = fileProperties["FileFlags"]
+
+
+if not getattr(sys, 'frozen', False):
     VERSION = None
     PRERELEASE = True
 
 
-def GetLasted():
+def GetLatest():
     if VERSION is None:
         return None
 
@@ -44,22 +70,22 @@ def GetLasted():
         return None
 
     if json_payload:
-        lasted = json_payload[0]
-        if lasted.get("prerelease", False):
+        latest = json_payload[0]
+        if latest.get("prerelease", False):
             if PRERELEASE:
-                tag_name = lasted.get("tag_name", None)
+                tag_name = latest.get("tag_name", None)
                 if tag_name is not None and tag_name != VERSION:
-                    return lasted.get("html_url", None)
+                    return latest.get("html_url", None)
                 else:
                     return None
             else:
                 for release in json_payload:
                     if not release.get("prerelease", False):
-                        lasted = release
+                        latest = release
                         break
                 else:
                     return None
 
-        tag_name = lasted.get("tag_name", None)
+        tag_name = latest.get("tag_name", None)
         if tag_name is not None and tag_name != VERSION:
-            return lasted.get("html_url", None)
+            return latest.get("html_url", None)
