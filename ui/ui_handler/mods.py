@@ -117,7 +117,7 @@ class Mods(QWidget):
 
     currentGameVersion = ""
 
-    def __init__(self, saveMethod, installMethod, uninstallMethod, buildMethod, createMethod,
+    def __init__(self, saveMethod, installMethod, uninstallMethod, deleteMethod, buildMethod, createMethod,
                  reloadMethod, openFolderMethod):
         super().__init__()
 
@@ -184,9 +184,10 @@ class Mods(QWidget):
         self.saveTimer.timeout.connect(saveMethod)
         self.actions.install.clicked.connect(installMethod)
         self.actions.uninstall.clicked.connect(uninstallMethod)
+        self.actions.deleteMod.clicked.connect(deleteMethod)
         self.actions.build.clicked.connect(buildMethod)
         self.ui.createMod.clicked.connect(createMethod)
-        self.ui.reloadModsList.clicked.connect(lambda: [self.removeAllMods(), reloadMethod()])
+        self.ui.reloadModsList.clicked.connect(reloadMethod)
         self.ui.openModsFolderButton.clicked.connect(openFolderMethod)
 
         self.ui.searchArea.textChanged.connect(self.searchEvent)

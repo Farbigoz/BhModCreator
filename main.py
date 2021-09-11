@@ -13,6 +13,7 @@ from ui.ui_handler.loading import Loading
 from ui.ui_handler.header import HeaderFrame
 from ui.ui_handler.mods import Mods
 from ui.ui_handler.progressdialog import ProgressDialog
+from ui.ui_handler.buttonsdialog import ButtonsDialog
 from ui.ui_handler.acceptdialog import AcceptDialog
 from ui.ui_handler.inputdialog import InputDialog
 
@@ -69,18 +70,20 @@ class MainWindow(QMainWindow):
         self.mods = Mods(saveMethod=self.saveModSource,
                          installMethod=self.installMod,
                          uninstallMethod=self.uninstallMod,
+                         deleteMethod=self.deleteMod,
                          buildMethod=self.buildMod,
                          createMethod=self.createMod,
                          reloadMethod=self.reloadMods,
                          openFolderMethod=self.openModsSourcesFolder)
         self.progressDialog = ProgressDialog(self)
-        self.acceptDialog = AcceptDialog(self)
+        self.acceptDialog = AcceptDialog(self)  # TODO: Remake to buttons dialog
         self.inputDialog = InputDialog(self)
+        self.buttonsDialog = ButtonsDialog(self)
 
         self.setLoadingScreen()
 
         self.controllerGetterTimer = QTimer()
-        self.controllerGetterTimer.timeout.connect(self.controllerGet)  # connect it to your update function
+        self.controllerGetterTimer.timeout.connect(self.controllerHandler)  # connect it to your update function
         self.controllerGetterTimer.start(10)
 
         self.setMinimumSize(QSize(850, 550))
@@ -91,7 +94,7 @@ class MainWindow(QMainWindow):
         self.inputDialog.onResize()
         super().resizeEvent(event)
 
-    def controllerGet(self):
+    def controllerHandler(self):
         data = self.controller.getData()
         if data is None:
             return
@@ -353,6 +356,26 @@ class MainWindow(QMainWindow):
             modClass = self.mods.selectedModButton.modClass
             self.controller.uninstallMod(modClass.hash)
 
+    def deleteMod(self):
+        if self.mods.selectedModButton is not None:
+            modClass = self.mods.selectedModButton.modClass
+
+            self.buttonsDialog.deleteButtons()
+            self.buttonsDialog.setTitle(f"Delete mod '{modClass.name}'")
+
+            if modClass.installed:
+                self.buttonsDialog.setContent("To delete mod, you need to uninstall it")
+            elif modClass.modFileExist:
+                self.buttonsDialog.setContent("")
+                self.buttonsDialog.addButton("Delete mod and sources", self.deleteModAllData)
+                self.buttonsDialog.addButton("Delete mod", self.deleteModFile)
+            else:
+                self.buttonsDialog.addButton("Delete sources", self.deleteModSources)
+
+            self.buttonsDialog.addButton("Cancel", self.buttonsDialog.hide)
+
+            self.buttonsDialog.show()
+
     def buildMod(self):
         if self.mods.selectedModButton is not None:
             modClass = self.mods.selectedModButton.modClass
@@ -373,6 +396,7 @@ class MainWindow(QMainWindow):
 
     def reloadMods(self):
         self.setLoadingScreen()
+        self.mods.removeAllMods()
         self.controller.reloadModsSources()
         self.controller.reloadMods()
         self.controller.getModsSourcesData()
@@ -380,6 +404,23 @@ class MainWindow(QMainWindow):
 
     def openModsSourcesFolder(self):
         os.startfile(self.modsSourcesPath)
+
+    def deleteModFile(self):
+        modClass = self.mods.selectedModButton.modClass
+        modClass.modFileExist = False
+        self.controller.deleteMod(modClass.hash)
+        self.mods.updateButtons()
+        self.buttonsDialog.hide()
+
+    def deleteModSources(self):
+        modClass = self.mods.selectedModButton.modClass
+        self.controller.deleteModSources(modClass.hash)
+        self.buttonsDialog.hide()
+        self.reloadMods()
+
+    def deleteModAllData(self):
+        self.deleteModFile()
+        self.deleteModSources()
 
 
 if __name__ == "__main__":
