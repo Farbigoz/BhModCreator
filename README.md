@@ -5,17 +5,24 @@
 
 ![window](https://github.com/Farbigoz/BhModCreator/blob/main/wiki/readme/window.png)
 
-## Lasted release
-* **[Version 0.2 beta](https://github.com/Farbigoz/BhModCreator/releases/tag/0.2version)**
+## Download application
+For downloading the app, see [**latest release**](https://github.com/Farbigoz/BhModCreator/releases/latest). 
+Older versions and pre-releases builds are available on [**releases section**](https://github.com/Farbigoz/BhModCreator/releases)
 
 ## Wiki
 * **[Formatting description text](https://github.com/Farbigoz/BhModCreator/wiki/Text-formatting)**
 
-## Required libraries
+## Project
+
+### Required libraries
     $ pip install JPype1
     $ pip install PySide6
     $ pip install psutil
     $ pip install pywin32   #If your system - Windows
+    
+### Build
+    $ pip install pyinstaller  
+    $ pyinstaller main.spec
 
 ## Licenses
 
