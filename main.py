@@ -444,7 +444,7 @@ class MainWindow(QMainWindow):
             self.versionSignal.emit(newVersion)
 
 
-if __name__ == "__main__":
+def RunApp():
     app = QApplication(sys.argv)
     font_db = QFontDatabase()
     font_db.addApplicationFont(":/fonts/resources/fonts/Exo 2/Exo2-SemiBold.ttf")
@@ -459,3 +459,7 @@ if __name__ == "__main__":
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    RunApp()
