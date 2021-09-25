@@ -1,8 +1,8 @@
 from typing import List, Dict
 
-from PySide6.QtWidgets import QWidget, QFileDialog, QFrame, QVBoxLayout
+from PySide6.QtWidgets import QWidget, QFileDialog, QFrame, QVBoxLayout, QApplication
 from PySide6.QtGui import QPaintEvent, QPixmap, QColor
-from PySide6.QtCore import QEvent, Qt, QTimer
+from PySide6.QtCore import QEvent, Qt, QTimer, QSize
 
 from .modclass import ModClass
 from .modbutton import ModButton
@@ -39,8 +39,6 @@ class SetPreview(QWidget):
 
         self.preview = None
 
-        # self.updateButtons()
-
         self.ui.add.clicked.connect(self.addClick)
         self.ui.deletePreview.clicked.connect(self.deleteClick)
         self.ui.change.clicked.connect(self.changeClick)
@@ -48,6 +46,34 @@ class SetPreview(QWidget):
         self.previewAdded = lambda path: None
         self.previewChanged = lambda path: None
         self.previewDeleted = lambda path: None
+
+    def resizeEvent(self, event):
+        if event is not None:
+            super().resizeEvent(event)
+
+        self.ui.buttons.setGeometry(0, 0, self.width(), self.height())
+
+        pixmap: QPixmap = self.ui.preview.pixmap()
+        size = pixmap.size()
+        if size != QSize(0, 0):
+            w = size.width()
+            h = size.height()
+            pw = self.ui.main.width()
+            ph = self.ui.main.height()
+
+            c = h / w
+
+            w = ph / c
+            if w <= pw:
+                h = ph
+            else:
+                w = pw
+                h = pw * c
+
+            self.ui.preview.setGeometry((pw//2)-(w//2), (ph//2)-(h//2), w, h)
+
+        else:
+            self.ui.preview.setGeometry(0, 0, self.ui.main.width(), self.ui.main.height())
 
     def setPreview(self, path: str):
         if path not in self.cachedPreviews:
@@ -60,11 +86,13 @@ class SetPreview(QWidget):
         self.ui.preview.setPixmap(pixmap)
 
         self.updateButtons()
+        self.resizeEvent(None)
 
     def clearPreview(self):
         self.preview = None
         self.ui.preview.setPixmap(None)
         self.updateButtons()
+        self.resizeEvent(None)
 
     def updateButtons(self):
         layout: QVBoxLayout = self.ui.buttons.layout()
@@ -83,9 +111,6 @@ class SetPreview(QWidget):
 
     def setHeight(self, h: int):
         self.setMinimumHeight(h)
-
-        self.ui.buttons.setGeometry(0, 0, self.width(), self.height())
-        self.ui.preview.setGeometry(0, 0, self.width(), self.height())
 
     def addClick(self):
         preview = SelectImageDialog()
@@ -247,6 +272,8 @@ class Mods(QWidget):
         return False
 
     def updateButtons(self):
+        QApplication.processEvents()
+
         layout = self.actions.topButtons.layout()
         modSource = self.selectedModButton.modClass
 
