@@ -3,8 +3,10 @@ import sys
 import threading
 import webbrowser
 
+from typing import List
+
 import core
-from core import NotificationType, Environment
+from core import NotificationType, Notification, Environment
 
 from PySide6.QtGui import QIcon, QFontDatabase
 from PySide6.QtCore import QTimer, QSize, Signal
@@ -48,6 +50,8 @@ class MainWindow(QMainWindow):
 
     modsPath = os.path.join(os.getcwd(), "Mods")
     modsSourcesPath = os.path.join(os.getcwd(), "Mods Sources")
+
+    errors: List[Notification] = []
 
     def __init__(self):
         super().__init__()
@@ -181,6 +185,8 @@ class MainWindow(QMainWindow):
                 # self.mods.selectedModButton.updateData()
                 self.progressDialog.hide()
 
+                self.showErrors()
+
             # Uninstalling
             elif ntype == NotificationType.UninstallingModSwf:
                 modHash, swfName = notification.args
@@ -206,6 +212,8 @@ class MainWindow(QMainWindow):
 
                 self.progressDialog.hide()
 
+                self.showErrors()
+
             # Compile
             elif ntype == NotificationType.CompileModSourcesImportActionScripts:
                 modHash, actionScript = notification.args
@@ -229,13 +237,33 @@ class MainWindow(QMainWindow):
                 self.progressDialog.addValue()
             elif ntype == NotificationType.CompileModSourcesFinished:
                 modHash = notification.args[0]
-                modsSources = self.mods.modsSources[modHash]
+                # modsSources = self.mods.modsSources[modHash]
                 # self.mods.updateAll()
                 # self.mods.selectedModButton.updateData()
                 self.controller.reloadMods()
                 self.controller.getModsData()
 
                 self.progressDialog.hide()
+
+                self.showErrors()
+
+            # Errors
+            elif ntype in [NotificationType.CompileModSourcesSpriteHasNoSymbolclass,  # Compiler
+                           NotificationType.CompileModSourcesSpriteEmpty,
+                           NotificationType.CompileModSourcesSpriteNotFoundInFolder,
+                           NotificationType.CompileModSourcesUnsupportedCategory,
+                           NotificationType.CompileModSourcesUnknownFile,
+                           NotificationType.LoadingModIsEmpty,  # Loader
+                           NotificationType.InstallingModNotFoundFileElement,  # Installer
+                           NotificationType.InstallingModNotFoundGameSwf,
+                           NotificationType.InstallingModSwfScriptError,
+                           NotificationType.InstallingModSwfSoundSymbolclassNotExist,
+                           NotificationType.InstallingModSoundNotExist,
+                           NotificationType.InstallingModSwfSpriteSymbolclassNotExist,
+                           NotificationType.InstallingModSpriteNotExist,
+                           NotificationType.UninstallingModSwfOriginalElementNotFound,  # Uninstaller
+                           NotificationType.UninstallingModSwfElementNotFound]:
+                self.errors.append(notification)
 
         elif cmd == Environment.GetModsSourcesData:
             for modSourcesData in data[1]:
@@ -256,6 +284,8 @@ class MainWindow(QMainWindow):
 
                 self.mods.currentGameVersion = modSourcesData.get("currentGameVersion", "")
 
+            self.showErrors()
+
         elif cmd == Environment.GetModsData:
             for modData in data[1]:
                 self.mods.updateMod(hash=modData.get("hash", ""),
@@ -265,6 +295,7 @@ class MainWindow(QMainWindow):
                 self.mods.updateAll()
 
             self.setModsScreen()
+            self.showErrors()
 
         elif cmd == Environment.GetModConflict:
             searching, modHash = data[1]
@@ -324,6 +355,82 @@ class MainWindow(QMainWindow):
                 self.inputDialog.setContent(TextFormatter.format("Enter mod folder name\n\n"
                                                                  '<color="#ff5050">This folder already exists!</color>'))
                 # self.controller.reloadModsSources()
+
+    def showErrors(self):
+        if self.errors:
+            errors = []
+            errorsNotifications = self.errors.copy()
+            self.errors.clear()
+
+            for notif in errorsNotifications:
+                ntype = notif.notificationType
+                string = ""
+
+                # Compiler
+                if ntype == NotificationType.CompileModSourcesSpriteHasNoSymbolclass:
+                    string = f"Sprite '{notif.args[1]}' has no name"
+
+                elif ntype == NotificationType.CompileModSourcesSpriteEmpty:
+                    string = f"Sprite '{notif.args[1]}' is empty"
+
+                elif ntype == NotificationType.CompileModSourcesSpriteNotFoundInFolder:
+                    string = f"Not found sprite in '{notif.args[1]}'"
+
+                elif ntype == NotificationType.CompileModSourcesUnsupportedCategory:
+                    string = f"Unsupported elements category '{notif.args[1]}'"
+
+                elif ntype == NotificationType.CompileModSourcesUnknownFile:
+                    string = f"Unknown file '{notif.args[1]}'"
+
+                # Loader
+                elif ntype == NotificationType.LoadingModIsEmpty:
+                    string = f"Mod '{notif.args[1]}' is empty"
+
+                # Installer
+                elif ntype == NotificationType.InstallingModNotFoundFileElement:
+                    string = f"Not found element '{notif.args[1]}' in bmod "
+
+                elif ntype == NotificationType.InstallingModNotFoundGameSwf:
+                    string = f"Not found game file '{notif.args[1]}'"
+
+                elif ntype == NotificationType.InstallingModSwfScriptError:
+                    string = f"Script '{notif.args[1]}' not installed"
+
+                elif ntype == NotificationType.InstallingModSwfSoundSymbolclassNotExist:
+                    string = f"Not found sound '{notif.args[1]}' in '{notif.args[2]}'"
+
+                elif ntype == NotificationType.InstallingModSoundNotExist:
+                    string = f"Not found sound '{notif.args[1]} ({notif.args[2]})' in '{notif.args[3]}'"
+
+                elif ntype == NotificationType.InstallingModSwfSpriteSymbolclassNotExist:
+                    string = f"Not found sprite '{notif.args[1]}' in '{notif.args[2]}'"
+
+                elif ntype == NotificationType.InstallingModSpriteNotExist:
+                    string = f"Not found sprite '{notif.args[1]} ({notif.args[2]})' in '{notif.args[3]}'"
+
+                # Uninstaller
+                elif ntype == NotificationType.UninstallingModSwfOriginalElementNotFound:
+                    string = f"Not found orig element '{notif.args[1]}' in '{notif.args[2]}'"
+
+                elif ntype == NotificationType.UninstallingModSwfElementNotFound:
+                    string = f"Not found mod element '{notif.args[1]}' in '{notif.args[2]}'"
+
+                if string:
+                    errors.append(string)
+                else:
+                    errors.append(repr(notif))
+
+            if errors:
+                self.acceptDialog.setTitle("Errors:")
+
+                string = ""
+                for error in errors:
+                    string += f"{error}\n"
+
+                self.acceptDialog.setContent(string)
+                self.acceptDialog.setAccept(self.acceptDialog.hide)
+                self.acceptDialog.setCancel(self.acceptDialog.hide)
+                self.acceptDialog.show()
 
     def setLoadingScreen(self):
         ClearFrame(self.ui.mainFrame)
