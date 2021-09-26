@@ -240,12 +240,12 @@ class MainWindow(QMainWindow):
                 # modsSources = self.mods.modsSources[modHash]
                 # self.mods.updateAll()
                 # self.mods.selectedModButton.updateData()
+                self.showErrors()
+
                 self.controller.reloadMods()
                 self.controller.getModsData()
 
                 self.progressDialog.hide()
-
-                self.showErrors()
 
             # Errors
             elif ntype in [NotificationType.CompileModSourcesSpriteHasNoSymbolclass,  # Compiler
@@ -421,16 +421,15 @@ class MainWindow(QMainWindow):
                     errors.append(repr(notif))
 
             if errors:
-                self.acceptDialog.setTitle("Errors:")
+                self.buttonsDialog.setTitle("Errors:")
 
                 string = ""
                 for error in errors:
                     string += f"{error}\n"
 
-                self.acceptDialog.setContent(string)
-                self.acceptDialog.setAccept(self.acceptDialog.hide)
-                self.acceptDialog.setCancel(self.acceptDialog.hide)
-                self.acceptDialog.show()
+                self.buttonsDialog.setContent(string)
+                self.buttonsDialog.setButtons([("Ok", self.buttonsDialog.hide)])
+                self.buttonsDialog.show()
 
     def setLoadingScreen(self):
         ClearFrame(self.ui.mainFrame)
