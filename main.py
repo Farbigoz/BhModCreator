@@ -253,6 +253,7 @@ class MainWindow(QMainWindow):
                            NotificationType.CompileModSourcesSpriteNotFoundInFolder,
                            NotificationType.CompileModSourcesUnsupportedCategory,
                            NotificationType.CompileModSourcesUnknownFile,
+                           NotificationType.CompileModSourcesSaveError,
                            NotificationType.LoadingModIsEmpty,  # Loader
                            NotificationType.InstallingModNotFoundFileElement,  # Installer
                            NotificationType.InstallingModNotFoundGameSwf,
@@ -381,6 +382,9 @@ class MainWindow(QMainWindow):
 
                 elif ntype == NotificationType.CompileModSourcesUnknownFile:
                     string = f"Unknown file '{notif.args[1]}'"
+
+                elif ntype == NotificationType.CompileModSourcesSaveError:
+                    string = "Error save .bmod"
 
                 # Loader
                 elif ntype == NotificationType.LoadingModIsEmpty:
