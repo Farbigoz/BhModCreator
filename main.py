@@ -72,7 +72,9 @@ class MainWindow(QMainWindow):
         self.controller.getModsData()
 
         self.loading = Loading()
-        self.header = HeaderFrame(githubMethod=lambda: webbrowser.open(f"{GITHUB}/{REPO}"))
+        self.header = HeaderFrame(githubMethod=lambda: webbrowser.open(f"{GITHUB}/{REPO}"),
+                                  supportMethod=lambda: webbrowser.open(SUPPORT_URL),
+                                  infoMethod=self.showInformation)
         self.mods = Mods(saveMethod=self.saveModSource,
                          installMethod=self.installMod,
                          uninstallMethod=self.uninstallMod,
@@ -101,6 +103,7 @@ class MainWindow(QMainWindow):
         self.progressDialog.onResize()
         self.acceptDialog.onResize()
         self.inputDialog.onResize()
+        self.buttonsDialog.onResize()
         super().resizeEvent(event)
 
     def controllerHandler(self):
@@ -445,6 +448,22 @@ class MainWindow(QMainWindow):
 
         AddToFrame(self.ui.mainFrame, self.header)
         AddToFrame(self.ui.mainFrame, self.mods)
+
+    def showInformation(self):
+        self.buttonsDialog.setTitle("About")
+
+        string = TextFormatter.table([["Product:", "Brawlhalla ModCreator"],
+                                      ["Version:", VERSION],
+                                      ["GitHub tag:", GIT_VERSION or "None"],
+                                      ["Status:", 'Beta' if PRERELEASE else 'Release'],
+                                      ["Homepage:", f"<url=\"{GITHUB}/{REPO}\">{GITHUB}/{REPO}</url>"],
+                                      ["Author:", "I_FabrizioG_I"],
+                                      ["Contacts:", "Discord: I_FabrizioG_I#8111"],
+                                      [None, "VK: vk/fabriziog"]], newLine=False)
+
+        self.buttonsDialog.setContent(TextFormatter.format(string, 11))
+        self.buttonsDialog.setButtons([("Ok", self.buttonsDialog.hide)])
+        self.buttonsDialog.show()
 
     def saveModSource(self):
         if self.mods.selectedModButton is not None:
