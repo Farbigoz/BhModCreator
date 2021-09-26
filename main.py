@@ -23,7 +23,10 @@ from ui.ui_handler.inputdialog import InputDialog
 
 from ui.utils.layout import AddToFrame, ClearFrame
 from ui.utils.textformater import TextFormatter
-from ui.utils.version import GetLatest, GITHUB, REPO
+from ui.utils.version import GetLatest, GITHUB, REPO, VERSION, GIT_VERSION, PRERELEASE
+
+
+SUPPORT_URL = "https://www.patreon.com/bhmodloader"
 
 
 def InitWindowSetText(text):
@@ -90,8 +93,9 @@ class MainWindow(QMainWindow):
 
         self.setLoadingScreen()
 
+        # Get core events
         self.controllerGetterTimer = QTimer()
-        self.controllerGetterTimer.timeout.connect(self.controllerHandler)  # connect it to your update function
+        self.controllerGetterTimer.timeout.connect(self.controllerHandler)
         self.controllerGetterTimer.start(10)
 
         self.setMinimumSize(QSize(850, 550))
@@ -556,21 +560,23 @@ class MainWindow(QMainWindow):
         self.deleteModFile()
         self.deleteModSources()
 
-    def newVersion(self, url):
-        self.buttonsDialog.setTitle("New version available")
-        self.buttonsDialog.setContent(url)
+    versionSignal = Signal(str, str, str, str)
+
+    def newVersion(self, url: str, fileUrl: str, version: str, body: str):
+        self.buttonsDialog.setTitle(f"New version available '{version}'")
+        self.buttonsDialog.setContent(TextFormatter.format(body, 11))
         self.buttonsDialog.deleteButtons()
         self.buttonsDialog.addButton("GO TO SITE", lambda: [webbrowser.open(url),
                                                             self.buttonsDialog.hide()])
         self.buttonsDialog.addButton("CANCEL", self.buttonsDialog.hide)
         self.buttonsDialog.show()
 
-    versionSignal = Signal(str)
-
     def checkNewVersion(self):
-        newVersion = GetLatest()
-        if newVersion is not None:
-            self.versionSignal.emit(newVersion)
+        latest = GetLatest()
+
+        if latest is not None:
+            newVersion, fileUrl, version, body = latest
+            self.versionSignal.emit(newVersion, fileUrl, version, body)
 
 
 def RunApp():
