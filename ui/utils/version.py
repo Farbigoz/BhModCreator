@@ -9,7 +9,7 @@ GITHUB_API = "https://api.github.com"
 REPO = "Farbigoz/BhModCreator"
 
 VERSION = "0.0.0"
-GIT_VERSION = "0.2.1version"
+GIT_VERSION = None
 PRERELEASE = True
 
 if sys.platform.startswith("win"):
