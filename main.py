@@ -2,11 +2,20 @@ import os
 import sys
 import threading
 import webbrowser
+import multiprocessing
 
 from typing import List
 
-import core
-from core import NotificationType, Notification, Environment, CORE_VERSION
+try:
+    import core
+    from core import NotificationType, Notification, Environment, CORE_VERSION
+
+    JAVA_FOUND = True
+except ImportError as e:
+    Notification = None
+
+    if e.msg == "Java not found!":
+        JAVA_FOUND = False
 
 from PySide6.QtGui import QIcon, QFontDatabase
 from PySide6.QtCore import QTimer, QSize, Signal
@@ -24,7 +33,6 @@ from ui.ui_handler.inputdialog import InputDialog
 from ui.utils.layout import AddToFrame, ClearFrame
 from ui.utils.textformater import TextFormatter
 from ui.utils.version import GetLatest, GITHUB, REPO, VERSION, GIT_VERSION, PRERELEASE, GAMEBANANA
-
 
 SUPPORT_URL = "https://www.patreon.com/bhmodloader"
 
@@ -50,6 +58,13 @@ def InitWindowClose():
             pass
 
 
+def TerminateApp():
+    for proc in multiprocessing.active_children():
+        proc.kill()
+    os.kill(multiprocessing.current_process().pid, 0)
+    sys.exit(0)
+
+
 class ModCreator(QMainWindow):
     _loaded = False
 
@@ -58,27 +73,17 @@ class ModCreator(QMainWindow):
 
     errors: List[Notification] = []
 
-    app = False
+    app = None
 
     def __init__(self):
         super().__init__()
         self.ui = Window(self)
-
         self.__class__.app = self
+
+        InitWindowSetText("ui")
 
         self.setWindowTitle(PROGRAM_NAME)
         self.setWindowIcon(QIcon(':/icons/resources/icons/App.ico'))
-
-        InitWindowSetText("core libs")
-        self.controller = core.Controller()
-        self.controller.setModsPath(self.modsPath)
-        self.controller.setModsSourcesPath(self.modsSourcesPath)
-        self.controller.reloadMods()
-        self.controller.reloadModsSources()
-        InitWindowClose()
-
-        self.controller.getModsSourcesData()
-        self.controller.getModsData()
 
         self.loading = Loading()
         self.header = HeaderFrame(githubMethod=lambda: webbrowser.open(f"{GITHUB}/{REPO}"),
@@ -99,15 +104,39 @@ class ModCreator(QMainWindow):
 
         self.setLoadingScreen()
 
-        # Get core events
-        self.controllerGetterTimer = QTimer()
-        self.controllerGetterTimer.timeout.connect(self.controllerHandler)
-        self.controllerGetterTimer.start(10)
-
         self.setMinimumSize(QSize(850, 550))
 
         self.versionSignal.connect(self.newVersion)
         threading.Thread(target=self.checkNewVersion).start()
+
+        self.controller = None
+
+        if JAVA_FOUND:
+            threading.Thread(target=self.runController).start()
+
+            # Get core events
+            self.controllerGetterTimer = QTimer()
+            self.controllerGetterTimer.timeout.connect(self.controllerHandler)
+            self.controllerGetterTimer.start(10)
+        else:
+            message = ("Java not found!\n\nRecommended java: "
+                       "<url=\"https://libericajdk.ru/pages/downloads/#/java-8-lts\">"
+                       "https://libericajdk.ru/pages/downloads/#/java-8-lts</url>")
+            self.showError("Fatal Error:", TextFormatter.format(message, 11), terminate=True)
+
+        InitWindowClose()
+
+    def runController(self):
+        self.loading.setText("Loading ModLoader Core")
+
+        self.controller = core.Controller()
+        self.controller.setModsPath(self.modsPath)
+        self.controller.setModsSourcesPath(self.modsSourcesPath)
+        self.controller.reloadMods()
+        self.controller.reloadModsSources()
+
+        self.controller.getModsSourcesData()
+        self.controller.getModsData()
 
     def resizeEvent(self, event):
         self.progressDialog.onResize()
@@ -117,6 +146,9 @@ class ModCreator(QMainWindow):
         super().resizeEvent(event)
 
     def controllerHandler(self):
+        if self.controller is None:
+            return
+
         data = self.controller.getData()
         if data is None:
             return
@@ -444,7 +476,7 @@ class ModCreator(QMainWindow):
 
                 self.showError("Errors:", string)
 
-    def showError(self, title, content, action=None):
+    def showError(self, title, content, action=None, terminate=False):
         self.buttonsDialog.setTitle(title)
 
         if self.acceptDialog.isShown():
@@ -458,6 +490,9 @@ class ModCreator(QMainWindow):
 
         if action is None:
             action = self.buttonsDialog.hide
+
+        if terminate:
+            action = TerminateApp
 
         self.buttonsDialog.setContent(content)
         self.buttonsDialog.setButtons([("Copy error", lambda: self.copyToClipboard(f"{title}\n\n{content}")),

@@ -69,20 +69,15 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 
     errorText = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
 
-    from main import ModCreator, PROGRAM_NAME
+    from main import ModCreator, PROGRAM_NAME, TerminateApp
     if ModCreator.app is not None:
-        ModCreator.app.showError("Fatal Error:", errorText, terminateApp)
+        ModCreator.app.showError("Fatal Error:",
+                                 errorText,
+                                 terminate=True)
     else:
         Error(PROGRAM_NAME, errorText)
-
-    sys.__excepthook__(exc_type, exc_value, exc_traceback)
-
-
-def terminateApp():
-    for proc in multiprocessing.active_children():
-        proc.kill()
-    os.kill(multiprocessing.current_process().pid, 0)
-    sys.exit(0)
+        TerminateApp()
+        #sys.__excepthook__(exc_type, exc_value, exc_traceback)
 
 
 sys.excepthook = handle_exception
