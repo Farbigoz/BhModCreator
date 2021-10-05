@@ -423,7 +423,7 @@ class ModCreator(QMainWindow):
                     string = f"Not found sprite '{notif.args[1]}' in '{notif.args[2]}'"
 
                 elif ntype == NotificationType.InstallingModSpriteNotExist:
-                    string = f"Not found sprite '{notif.args[1]} ({notif.args[2]})' in '{notif.args[3]}'"
+                    string = f"Not found sprite '{notif.args[1]} ({notif.args[2]})' in mod file"
 
                 # Uninstaller
                 elif ntype == NotificationType.UninstallingModSwfOriginalElementNotFound:
