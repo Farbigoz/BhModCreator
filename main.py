@@ -192,7 +192,7 @@ class MainWindow(QMainWindow):
                 # self.mods.selectedModButton.updateData()
                 self.progressDialog.hide()
 
-                self.showErrors()
+                self.showErrorNotifications()
 
             # Uninstalling
             elif ntype == NotificationType.UninstallingModSwf:
@@ -219,7 +219,7 @@ class MainWindow(QMainWindow):
 
                 self.progressDialog.hide()
 
-                self.showErrors()
+                self.showErrorNotifications()
 
             # Compile
             elif ntype == NotificationType.CompileModSourcesImportActionScripts:
@@ -247,7 +247,7 @@ class MainWindow(QMainWindow):
                 # modsSources = self.mods.modsSources[modHash]
                 # self.mods.updateAll()
                 # self.mods.selectedModButton.updateData()
-                self.showErrors()
+                self.showErrorNotifications()
 
                 self.controller.reloadMods()
                 self.controller.getModsData()
@@ -292,7 +292,7 @@ class MainWindow(QMainWindow):
 
                 self.mods.currentGameVersion = modSourcesData.get("currentGameVersion", "")
 
-            self.showErrors()
+            self.showErrorNotifications()
 
         elif cmd == Environment.GetModsData:
             for modData in data[1]:
@@ -303,7 +303,7 @@ class MainWindow(QMainWindow):
                 self.mods.updateAll()
 
             self.setModsScreen()
-            self.showErrors()
+            self.showErrorNotifications()
 
         elif cmd == Environment.GetModConflict:
             searching, modHash = data[1]
@@ -364,7 +364,7 @@ class MainWindow(QMainWindow):
                                                                  '<color="#ff5050">This folder already exists!</color>'))
                 # self.controller.reloadModsSources()
 
-    def showErrors(self):
+    def showErrorNotifications(self):
         if self.errors:
             errors = []
             errorsNotifications = self.errors.copy()
@@ -432,15 +432,36 @@ class MainWindow(QMainWindow):
                     errors.append(repr(notif))
 
             if errors:
-                self.buttonsDialog.setTitle("Errors:")
-
                 string = ""
                 for error in errors:
                     string += f"{error}\n"
 
-                self.buttonsDialog.setContent(string)
-                self.buttonsDialog.setButtons([("Ok", self.buttonsDialog.hide)])
-                self.buttonsDialog.show()
+                self.showError("Errors:", string)
+
+    def showError(self, title, content, action=None):
+        self.buttonsDialog.setTitle(title)
+
+        if self.acceptDialog.isShown():
+            self.acceptDialog.hide()
+
+        if self.buttonsDialog.isShown():
+            self.buttonsDialog.hide()
+
+        if self.progressDialog.isShown():
+            self.progressDialog.hide()
+
+        if action is None:
+            action = self.buttonsDialog.hide
+
+        self.buttonsDialog.setContent(content)
+        self.buttonsDialog.setButtons([("Copy error", lambda: self.copyToClipboard(f"{title}\n\n{content}")),
+                                       ("Ok", action)])
+        self.buttonsDialog.show()
+
+    def copyToClipboard(self, text):
+        cb = QApplication.clipboard()
+        cb.clear(mode=cb.Clipboard)
+        cb.setText(text, mode=cb.Clipboard)
 
     def setLoadingScreen(self):
         ClearFrame(self.ui.mainFrame)

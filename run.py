@@ -61,8 +61,28 @@ multiprocessing.Process._bootstrap = _bootstrap
 
 
 def handle_exception(exc_type, exc_value, exc_traceback):
-    Error("ModLoader", "".join(traceback.format_exception(exc_type, exc_value, exc_traceback)))
+    try:
+        import pyi_splash
+        pyi_splash.close()
+    except:
+        pass
+
+    errorText = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+
+    from main import ModCreator, PROGRAM_NAME
+    if ModCreator.app is not None:
+        ModCreator.app.showError("Fatal Error:", errorText, terminateApp)
+    else:
+        Error(PROGRAM_NAME, errorText)
+
     sys.__excepthook__(exc_type, exc_value, exc_traceback)
+
+
+def terminateApp():
+    for proc in multiprocessing.active_children():
+        proc.kill()
+    os.kill(multiprocessing.current_process().pid, 0)
+    sys.exit(0)
 
 
 sys.excepthook = handle_exception
