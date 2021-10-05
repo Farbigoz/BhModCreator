@@ -6,7 +6,7 @@ import webbrowser
 from typing import List
 
 import core
-from core import NotificationType, Notification, Environment
+from core import NotificationType, Notification, Environment, CORE_VERSION
 
 from PySide6.QtGui import QIcon, QFontDatabase
 from PySide6.QtCore import QTimer, QSize, Signal
@@ -23,10 +23,12 @@ from ui.ui_handler.inputdialog import InputDialog
 
 from ui.utils.layout import AddToFrame, ClearFrame
 from ui.utils.textformater import TextFormatter
-from ui.utils.version import GetLatest, GITHUB, REPO, VERSION, GIT_VERSION, PRERELEASE
+from ui.utils.version import GetLatest, GITHUB, REPO, VERSION, GIT_VERSION, PRERELEASE, GAMEBANANA
 
 
 SUPPORT_URL = "https://www.patreon.com/bhmodloader"
+
+PROGRAM_NAME = "Brawlhalla ModCreator"
 
 
 def InitWindowSetText(text):
@@ -48,7 +50,7 @@ def InitWindowClose():
             pass
 
 
-class MainWindow(QMainWindow):
+class ModCreator(QMainWindow):
     _loaded = False
 
     modsPath = os.path.join(os.getcwd(), "Mods")
@@ -56,11 +58,15 @@ class MainWindow(QMainWindow):
 
     errors: List[Notification] = []
 
+    app = False
+
     def __init__(self):
         super().__init__()
         self.ui = Window(self)
 
-        self.setWindowTitle("Brawlhalla ModCreator")
+        self.__class__.app = self
+
+        self.setWindowTitle(PROGRAM_NAME)
         self.setWindowIcon(QIcon(':/icons/resources/icons/App.ico'))
 
         InitWindowSetText("core libs")
@@ -69,6 +75,7 @@ class MainWindow(QMainWindow):
         self.controller.setModsSourcesPath(self.modsSourcesPath)
         self.controller.reloadMods()
         self.controller.reloadModsSources()
+        self.controller.installBaseMod(f"{PROGRAM_NAME}: {VERSION}")
         InitWindowClose()
 
         self.controller.getModsSourcesData()
@@ -477,11 +484,13 @@ class MainWindow(QMainWindow):
     def showInformation(self):
         self.buttonsDialog.setTitle("About")
 
-        string = TextFormatter.table([["Product:", "Brawlhalla ModCreator"],
+        string = TextFormatter.table([["Product:", PROGRAM_NAME],
                                       ["Version:", VERSION],
                                       ["GitHub tag:", GIT_VERSION or "None"],
                                       ["Status:", 'Beta' if PRERELEASE else 'Release'],
+                                      ["Core version:", CORE_VERSION],
                                       ["Homepage:", f"<url=\"{GITHUB}/{REPO}\">{GITHUB}/{REPO}</url>"],
+                                      [None, f"<url=\"{GAMEBANANA}\">{GAMEBANANA}</url>"],
                                       ["Author:", "I_FabrizioG_I"],
                                       ["Contacts:", "Discord: I_FabrizioG_I#8111"],
                                       [None, "VK: vk/fabriziog"]], newLine=False)
@@ -612,7 +621,7 @@ def RunApp():
     font_db.addApplicationFont(":/fonts/resources/fonts/Roboto/Roboto-Medium.ttf")
     font_db.addApplicationFont(":/fonts/resources/fonts/Roboto/Roboto-MediumItalic.ttf")
     font_db.addApplicationFont(":/fonts/resources/fonts/Roboto/Roboto-Regular.ttf")
-    window = MainWindow()
+    window = ModCreator()
     window.show()
     sys.exit(app.exec())
 
