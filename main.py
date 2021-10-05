@@ -75,7 +75,6 @@ class ModCreator(QMainWindow):
         self.controller.setModsSourcesPath(self.modsSourcesPath)
         self.controller.reloadMods()
         self.controller.reloadModsSources()
-        self.controller.installBaseMod(f"{PROGRAM_NAME}: {VERSION}")
         InitWindowClose()
 
         self.controller.getModsSourcesData()
