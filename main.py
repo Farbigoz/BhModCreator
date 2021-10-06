@@ -18,7 +18,7 @@ except ImportError as e:
         JAVA_FOUND = False
 
 from PySide6.QtGui import QIcon, QFontDatabase
-from PySide6.QtCore import QTimer, QSize, Signal
+from PySide6.QtCore import QTimer, QSize
 from PySide6.QtWidgets import QApplication, QMainWindow
 
 from ui.ui_handler.window import Window
@@ -33,6 +33,7 @@ from ui.ui_handler.inputdialog import InputDialog
 from ui.utils.layout import AddToFrame, ClearFrame
 from ui.utils.textformater import TextFormatter
 from ui.utils.version import GetLatest, GITHUB, REPO, VERSION, GIT_VERSION, PRERELEASE, GAMEBANANA
+from ui.utils.mainthread import QExecMainThread
 
 SUPPORT_URL = "https://www.patreon.com/bhmodloader"
 
@@ -78,7 +79,8 @@ class ModCreator(QMainWindow):
     def __init__(self):
         super().__init__()
         self.ui = Window(self)
-        self.__class__.app = self
+
+        QExecMainThread.init(self)
 
         InitWindowSetText("ui")
 
@@ -106,7 +108,6 @@ class ModCreator(QMainWindow):
 
         self.setMinimumSize(QSize(850, 550))
 
-        self.versionSignal.connect(self.newVersion)
         threading.Thread(target=self.checkNewVersion).start()
 
         self.controller = None
@@ -125,6 +126,7 @@ class ModCreator(QMainWindow):
             self.showError("Fatal Error:", TextFormatter.format(message, 11), terminate=True)
 
         InitWindowClose()
+        self.__class__.app = self
 
     def runController(self):
         self.loading.setText("Loading ModLoader Core")
@@ -476,6 +478,7 @@ class ModCreator(QMainWindow):
 
                 self.showError("Errors:", string)
 
+    @QExecMainThread
     def showError(self, title, content, action=None, terminate=False):
         self.buttonsDialog.setTitle(title)
 
@@ -624,8 +627,7 @@ class ModCreator(QMainWindow):
         self.deleteModFile()
         self.deleteModSources()
 
-    versionSignal = Signal(str, str, str, str)
-
+    @QExecMainThread
     def newVersion(self, url: str, fileUrl: str, version: str, body: str):
         self.buttonsDialog.setTitle(f"New version available '{version}'")
         self.buttonsDialog.setContent(TextFormatter.format(body, 11))
@@ -640,7 +642,7 @@ class ModCreator(QMainWindow):
 
         if latest is not None:
             newVersion, fileUrl, version, body = latest
-            self.versionSignal.emit(newVersion, fileUrl, version, body)
+            self.newVersion(newVersion, fileUrl, version, body)
 
 
 def RunApp():
