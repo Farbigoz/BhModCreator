@@ -84,6 +84,10 @@ sys.excepthook = handle_exception
 threading.excepthook = lambda hook: handle_exception(hook.exc_type, hook.exc_value, hook.exc_traceback)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" and "--multiprocessing-fork" not in sys.argv:
     from main import RunApp
     RunApp()
+
+elif "--multiprocessing-fork" in sys.argv:
+    from core import Controller
+    Controller()
